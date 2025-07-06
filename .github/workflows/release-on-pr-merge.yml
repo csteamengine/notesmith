@@ -12,10 +12,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo with PAT
+      - name: Checkout main branch with PAT
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: main
           token: ${{ secrets.GH_PAT }}
 
       - name: Configure Git user
@@ -105,7 +106,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
-      - name: Commit version bump
+      - name: Commit version bump to main
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(release): v${{ steps.version.outputs.version }}"
