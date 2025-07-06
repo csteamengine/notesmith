@@ -1,0 +1,80 @@
+name: PR-Based Auto Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Determine version bump from PR title
+        id: bump
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          echo "PR Title: $TITLE"
+          
+          if [[ "$TITLE" =~ ^BREAKING:|^feat!: ]]; then
+            echo "bump=major" >> $GITHUB_OUTPUT
+          elif [[ "$TITLE" =~ ^feat: ]]; then
+            echo "bump=minor" >> $GITHUB_OUTPUT
+          elif [[ "$TITLE" =~ ^fix: ]]; then
+            echo "bump=patch" >> $GITHUB_OUTPUT
+          else
+            echo "No version bump detected"
+            exit 1
+          fi
+
+      - name: Run standard-version
+        run: npx standard-version --release-as ${{ steps.bump.outputs.bump }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read version
+        id: version
+        run: |
+          VERSION=$(jq -r '.version' manifest.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Zip plugin files
+        run: |
+          mkdir dist
+          zip -r dist/refiner-plugin.zip main.js manifest.json styles.css
+
+      - name: Update versions.json
+        run: |
+          jq '.["${{ steps.version.outputs.version }}"]="https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/refiner-plugin.zip"' versions.json > tmp.json
+          mv tmp.json versions.json
+
+      - name: Commit and tag
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(release): v${{ steps.version.outputs.version }}"
+          tagging_message: "v${{ steps.version.outputs.version }}"
+          file_pattern: "manifest.json CHANGELOG.md versions.json package.json package-lock.json"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          files: dist/refiner-plugin.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
