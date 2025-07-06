@@ -3,9 +3,9 @@
 	"name": "NoteSmith",
 	"version": "1.0.1",
 	"minAppVersion": "0.15.0",
-	"description": "NoteSmith is a powerful note-refining plugin using OpenAI's GPT-3.5 Turbo model. It allows you to refine your notes, generate summaries, and create new content based on your existing notes.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
+	"description": "NoteSmith is a powerful note-refining plugin using OpenAI's API. It allows you to refine your notes, generate summaries, and create new content based on your existing notes.",
+	"author": "Charlie Steenhagen",
+	"authorUrl": "https://github.com/csteamengine/notesmith",
 	"fundingUrl": "https://obsidian.md/pricing",
 	"isDesktopOnly": false
 }
