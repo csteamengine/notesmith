@@ -93,4 +93,4 @@ jobs:
           name: v${{ steps.version.outputs.version }}
           files: dist/refiner-plugin.zip
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
