@@ -13,7 +13,7 @@ This plugin sends your current note to an LLM and returns a cleaned-up version w
 - ✅ Converts bullet lists into tasks (`- [ ]`) when appropriate
 - ✅ Applies proper heading structure
 - ✅ Respects Obsidian Markdown conventions
-- ✅ Optional tag annotations (e.g. `#todo`, `#idea`, `#question` etc.)
+- ✅ Optional tag annotations (e.g. `#todo`, `#idea` etc.)
 - ✅ Supports additional user-defined prompt instructions
 - ✅ Loading spinner and error handling
 - ✅ Works via command palette or right-click file menu
