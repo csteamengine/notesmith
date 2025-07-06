@@ -94,6 +94,10 @@ jobs:
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: v${{ steps.version.outputs.version }}
-          files: dist/notesmith-plugin.zip
+          files: |
+            dist/notesmith-plugin.zip
+            main.js
+            manifest.json
+            styles.css
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
