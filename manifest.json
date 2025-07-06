@@ -5,7 +5,7 @@
 	"minAppVersion": "0.15.0",
 	"description": "NoteSmith is a powerful note-refining plugin using OpenAI's API. It allows you to refine your notes, generate summaries, and create new content based on your existing notes.",
 	"author": "Charlie Steenhagen - Modern Hobbyist",
-	"authorUrl": "https://github.com/csteamengine/notesmith",
+	"authorUrl": "https://github.com/csteamengine",
 	"fundingUrl": "https://github.com/sponsors/csteamengine",
 	"isDesktopOnly": false
 }
