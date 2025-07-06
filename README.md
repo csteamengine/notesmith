@@ -1,4 +1,4 @@
-# 🪄 Obsidian Note Refiner
+# 🪄 NoteSmith
 
 Refine, clean, and organize your messy notes with a single command — powered by OpenAI or any OpenAI-compatible API.
 
