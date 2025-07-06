@@ -50,7 +50,7 @@ jobs:
       - name: Run standard-version
         run: npx standard-version --release-as ${{ steps.bump.outputs.bump }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
       - name: Read version
         id: version
