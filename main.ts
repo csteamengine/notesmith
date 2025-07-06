@@ -46,7 +46,7 @@ export default class RefinerPlugin extends Plugin {
 			this.app.workspace.on("file-menu", (menu, file) => {
 				if (file instanceof TFile && file.extension === "md") {
 					menu.addItem((item) =>
-						item.setTitle("Refine with AI").setIcon("wand").onClick(() => {
+						item.setTitle("Refine with NoteSmith").setIcon("wand").onClick(() => {
 							this.refineNote(file);
 						})
 					);
