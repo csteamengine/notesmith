@@ -1,0 +1,65 @@
+---
+title: ⚙️ Setup
+description: How to install and configure the NoteSmith plugin for Obsidian.
+slug: /setup
+sidebar_position: 2
+---
+
+# ⚙️ Setup
+
+NoteSmith is an Obsidian plugin that helps you revise your notes using the OpenAI API. This guide walks you through installing the plugin and getting it ready to use.
+
+---
+
+## 🧩 1. Install NoteSmith
+
+There are two ways to install the plugin: from the Obsidian Community Plugins browser, or manually from GitHub.
+
+### ✅ Recommended: Community Plugins (after approval)
+
+1. Open **Settings → Community Plugins** in Obsidian
+2. Click **Browse** and search for `NoteSmith`
+3. Click **Install**, then **Enable**
+
+> _Can't find it yet?_ You can install manually below while the plugin is awaiting community approval.
+
+### 🛠️ Manual Installation
+
+1. Download the latest release from GitHub:
+👉 [Releases on GitHub](https://github.com/csteamengine/notesmith/releases)
+
+2. Unzip the `.zip` file and copy the folder into:
+```
+<your-vault>/.obsidian/plugins/notesmith
+   ```
+
+3. Go to **Settings → Community Plugins → Installed Plugins**, and enable **NoteSmith**
+
+---
+
+## 🔑 2. Get Your OpenAI API Key
+
+NoteSmith requires access to the OpenAI API to function.
+
+1. Go to [https://platform.openai.com/account/api-keys](https://platform.openai.com/account/api-keys)
+2. Click **+ Create new secret key**
+3. Copy the key (starts with `sk-...`)
+
+---
+
+## 🧾 3. Configure Plugin Settings
+
+Once the plugin is enabled:
+
+1. Go to **Settings → NoteSmith**
+2. Paste your OpenAI API key into the **API Key** field
+3. (Optional) Adjust the model name (`gpt-4`, `gpt-3.5-turbo`, etc.)
+4. Set the base API URL if you're using a proxy or a non-OpenAI-compatible provider
+
+> 💡 You can also define your own prompts and edit styles in this settings screen — see the [Usage](./usage) guide.
+
+---
+
+## ✅ You're Ready!
+
+You can now run AI-powered refinements on any note using the command palette or right-click menu. Head over to the [Usage guide](./usage) to learn how to use it effectively.
