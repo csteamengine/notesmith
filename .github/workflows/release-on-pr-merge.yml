@@ -58,14 +58,17 @@ jobs:
           VERSION=$(jq -r '.version' manifest.json)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Build plugin
+        run: npm run build
+
       - name: Zip plugin files
         run: |
           mkdir dist
-          zip -r dist/refiner-plugin.zip main.js manifest.json styles.css
+          zip -r dist/notesmith-plugin.zip main.js manifest.json styles.css
 
       - name: Update versions.json
         run: |
-          jq '.["${{ steps.version.outputs.version }}"]="https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/refiner-plugin.zip"' versions.json > tmp.json
+          jq '.["${{ steps.version.outputs.version }}"]="https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/notesmith-plugin.zip"' versions.json > tmp.json
           mv tmp.json versions.json
 
       - name: Skip tagging if tag exists
@@ -91,6 +94,6 @@ jobs:
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: v${{ steps.version.outputs.version }}
-          files: dist/refiner-plugin.zip
+          files: dist/notesmith-plugin.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
