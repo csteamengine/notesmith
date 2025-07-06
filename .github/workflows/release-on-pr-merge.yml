@@ -32,44 +32,27 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Check if tag already exists and determine bump
-        id: check_tag
+      - name: Determine version bump from PR title
+        id: bump
         run: |
           TITLE="${{ github.event.pull_request.title }}"
           if [[ "$TITLE" =~ ^BREAKING:|^feat!: ]]; then
-            BUMP="major"
+            echo "bump=major" >> $GITHUB_OUTPUT
           elif [[ "$TITLE" =~ ^feat: ]]; then
-            BUMP="minor"
+            echo "bump=minor" >> $GITHUB_OUTPUT
           elif [[ "$TITLE" =~ ^fix: ]]; then
-            BUMP="patch"
+            echo "bump=patch" >> $GITHUB_OUTPUT
           else
             echo "No version bump detected"
             exit 1
           fi
-          echo "bump=$BUMP" >> $GITHUB_OUTPUT
 
-          NEXT_VERSION=$(npx standard-version --release-as "$BUMP" --dry-run | grep "tagging release" | grep -oE "[0-9]+\.[0-9]+\.[0-9]+")
-          echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
-
-          TAG="v$NEXT_VERSION"
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag already exists. Skipping release."
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "Tag does not exist. Proceeding."
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Exit early if tag exists
-        if: steps.check_tag.outputs.exists == 'true'
-        run: exit 0
-
-      - name: Run standard-version without commit/tag (prep for release)
-        run: npx standard-version --release-as ${{ steps.check_tag.outputs.bump }} --skip.commit --skip.tag
+      - name: Run standard-version (bump, commit, tag)
+        run: npx standard-version --release-as ${{ steps.bump.outputs.bump }}
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
-      - name: Read version from manifest
+      - name: Get new version
         id: version
         run: |
           VERSION=$(jq -r '.version' manifest.json)
@@ -88,6 +71,13 @@ jobs:
           jq '.["${{ steps.version.outputs.version }}"]="https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/notesmith-plugin.zip"' versions.json > tmp.json
           mv tmp.json versions.json
 
+      - name: Commit updated versions.json
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(update versions.json): v${{ steps.version.outputs.version }}"
+          file_pattern: versions.json
+          branch: main
+
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -100,21 +90,3 @@ jobs:
             styles.css
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-
-      - name: Finalize version bump (after successful release)
-        run: npx standard-version --release-as ${{ steps.check_tag.outputs.bump }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-
-      - name: Switch to main branch
-        run: |
-          git fetch origin main
-          git checkout main
-          git reset --hard origin/main
-
-      - name: Commit version bump to main
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore(release): v${{ steps.version.outputs.version }}"
-          file_pattern: "manifest.json CHANGELOG.md versions.json package.json package-lock.json"
-
