@@ -30,29 +30,44 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Determine version bump from PR title
-        id: bump
+      - name: Check if tag already exists and determine bump
+        id: check_tag
         run: |
           TITLE="${{ github.event.pull_request.title }}"
-          echo "PR Title: $TITLE"
-          
           if [[ "$TITLE" =~ ^BREAKING:|^feat!: ]]; then
-            echo "bump=major" >> $GITHUB_OUTPUT
+            BUMP="major"
           elif [[ "$TITLE" =~ ^feat: ]]; then
-            echo "bump=minor" >> $GITHUB_OUTPUT
+            BUMP="minor"
           elif [[ "$TITLE" =~ ^fix: ]]; then
-            echo "bump=patch" >> $GITHUB_OUTPUT
+            BUMP="patch"
           else
             echo "No version bump detected"
             exit 1
           fi
+          echo "bump=$BUMP" >> $GITHUB_OUTPUT
 
-      - name: Run standard-version
-        run: npx standard-version --release-as ${{ steps.bump.outputs.bump }}
+          NEXT_VERSION=$(npx standard-version --release-as "$BUMP" --dry-run | grep "tagging release" | grep -oE "[0-9]+\.[0-9]+\.[0-9]+")
+          echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+
+          TAG="v$NEXT_VERSION"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag already exists. Skipping release."
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Tag does not exist. Proceeding."
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Exit early if tag exists
+        if: steps.check_tag.outputs.exists == 'true'
+        run: exit 0
+
+      - name: Run standard-version without commit/tag (prep for release)
+        run: npx standard-version --release-as ${{ steps.check_tag.outputs.bump }} --skip.commit --skip.tag
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
-      - name: Read version
+      - name: Read version from manifest
         id: version
         run: |
           VERSION=$(jq -r '.version' manifest.json)
@@ -63,31 +78,13 @@ jobs:
 
       - name: Zip plugin files
         run: |
-          mkdir dist
+          mkdir -p dist
           zip -r dist/notesmith-plugin.zip main.js manifest.json styles.css
 
       - name: Update versions.json
         run: |
-          jq '.["${{ steps.version.outputs.version }}"]="https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/notesmith-plugin.zip"' versions.json > tmp.json
+          jq '.["${{ steps.version.outputs.version }}"]="https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/notesmith-plugin.zip"' versions.json > tmp.json
           mv tmp.json versions.json
-
-      - name: Skip tagging if tag exists
-        run: |
-          TAG="v${{ steps.version.outputs.version }}"
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-          echo "Tag $TAG already exists. Skipping auto commit step."
-          echo "skip_auto_commit=true" >> $GITHUB_ENV
-          else
-          echo "skip_auto_commit=false" >> $GITHUB_ENV
-          fi
-
-      - name: Commit and tag
-        if: env.skip_auto_commit != 'true'
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore(release): v${{ steps.version.outputs.version }}"
-          tagging_message: "v${{ steps.version.outputs.version }}"
-          file_pattern: "manifest.json CHANGELOG.md versions.json package.json package-lock.json"
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
@@ -101,3 +98,15 @@ jobs:
             styles.css
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+
+      - name: Finalize version bump (after successful release)
+        run: npx standard-version --release-as ${{ steps.check_tag.outputs.bump }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+
+      - name: Commit version bump
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(release): v${{ steps.version.outputs.version }}"
+          tagging_message: "v${{ steps.version.outputs.version }}"
+          file_pattern: "manifest.json CHANGELOG.md versions.json package.json package-lock.json"
