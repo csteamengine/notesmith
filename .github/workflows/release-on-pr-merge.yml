@@ -68,7 +68,18 @@ jobs:
           jq '.["${{ steps.version.outputs.version }}"]="https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/refiner-plugin.zip"' versions.json > tmp.json
           mv tmp.json versions.json
 
+      - name: Skip tagging if tag exists
+        run: |
+          TAG="v${{ steps.version.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+          echo "Tag $TAG already exists. Skipping auto commit step."
+          echo "skip_auto_commit=true" >> $GITHUB_ENV
+          else
+          echo "skip_auto_commit=false" >> $GITHUB_ENV
+          fi
+
       - name: Commit and tag
+        if: env.skip_auto_commit != 'true'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(release): v${{ steps.version.outputs.version }}"
