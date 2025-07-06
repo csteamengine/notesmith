@@ -1,0 +1,110 @@
+---
+title: 🚀 Usage
+description: How to use NoteSmith in Obsidian to rewrite, summarize, and edit your notes with AI.
+slug: /usage
+sidebar_position: 3
+---
+
+# 🚀 Usage
+
+NoteSmith lets you use AI (via the OpenAI API) to revise, summarize, or transform entire notes in Obsidian with just a few clicks. This guide walks you through the basic and advanced features.
+
+---
+
+## ✨ Basic Usage
+
+Once you've installed NoteSmith and added your OpenAI API key, you're ready to edit!
+
+### 🔄 Run a Default Rewrite
+
+1. Open any note you want to revise
+2. Press `Ctrl+P` (or `Cmd+P` on Mac) to open the **Command Palette**
+3. Run `NoteSmith: Rewrite Note`
+4. The plugin will:
+- Send your note's content to the OpenAI API
+- Apply the default prompt (e.g., “Rewrite this for clarity and grammar”)
+- Replace your note with the edited version
+
+> ✅ Your original content is automatically backed up in case you need to undo.
+
+---
+
+## 🧠 Custom Prompts
+
+You can create your own prompts tailored to your workflow.
+
+### ➕ Add a New Prompt
+
+1. Go to **Settings → NoteSmith → Custom Prompts**
+2. Click **Add Prompt**
+3. Give it:
+- A **Name** (used in the command palette)
+- A **Prompt Template** (e.g., _"Summarize this note in bullet points."_)
+
+### 📋 Use a Custom Prompt
+
+1. Open the note you want to process
+2. Open the **Command Palette**
+3. Run `NoteSmith: Run "<Your Prompt Name>"`
+
+---
+
+## 💬 Prompt Tips
+
+- The entire note is inserted as `{{content}}` in your template.
+- You can create prompts for:
+- Simplifying technical notes
+- Converting meeting notes to action items
+- Translating to another language
+- Rewriting in a different tone (formal, casual, persuasive)
+
+Example prompt:
+
+```
+Rewrite the following content in a professional tone with clear bullet points:
+{{content}}
+```
+
+---
+
+## 🧪 Advanced Options
+
+You can also fine-tune NoteSmith’s behavior under **Settings → NoteSmith**:
+
+- **Model Name** — `gpt-3.5-turbo`, `gpt-4`, or any model your API key supports
+- **Temperature** — Adjusts creativity (higher = more variation)
+- **Base URL** — Useful for proxies or compatible APIs like Azure or LocalAI
+
+---
+
+## 🛠 Right-Click Menu
+
+If you prefer mouse workflows:
+
+1. Right-click inside any note
+2. Select `NoteSmith → Rewrite with [Prompt Name]`
+3. Watch the magic happen 🎩✨
+
+---
+
+## 🧼 Undo / Recovery
+
+- Your original note is automatically stored as a backup in case something goes wrong.
+- You can always press `Ctrl+Z` (`Cmd+Z`) immediately after a rewrite to undo.
+
+---
+
+## 📖 Summary
+
+NoteSmith is your personal editor inside Obsidian:
+
+✅ Run rewrites
+🧠 Use or create custom prompts
+🔌 Powered by your OpenAI key
+📄 Works with full note content
+
+Let it clean up your thoughts — so you can focus on capturing them.
+
+---
+
+Need help writing better prompts? Or want to use other models like Claude or Mistral? Let us know in the [GitHub Issues](https://github.com/csteamengine/notesmith/issues)!
