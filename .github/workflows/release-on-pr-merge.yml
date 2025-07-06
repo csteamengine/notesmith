@@ -71,15 +71,15 @@ jobs:
           jq '.["${{ steps.version.outputs.version }}"]="https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/notesmith-plugin.zip"' versions.json > tmp.json
           mv tmp.json versions.json
 
-      - name: Commit version bump files
+      - name: Commit version bump and versions.json
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(release): v${{ steps.version.outputs.version }}"
           file_pattern: |
             package.json
             manifest.json
-            versions.json
             CHANGELOG.md
+            versions.json
           branch: main
 
       - name: Publish GitHub Release
