@@ -52,6 +52,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
+      - name: Push version bump commit and tag
+        run: git push origin main --follow-tags
+
       - name: Get new version
         id: version
         run: |
@@ -71,15 +74,11 @@ jobs:
           jq '.["${{ steps.version.outputs.version }}"]="https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/notesmith-plugin.zip"' versions.json > tmp.json
           mv tmp.json versions.json
 
-      - name: Commit version bump and versions.json
+      - name: Commit versions.json
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore(release): v${{ steps.version.outputs.version }}"
-          file_pattern: |
-            package.json
-            manifest.json
-            CHANGELOG.md
-            versions.json
+          commit_message: "chore(update versions.json): v${{ steps.version.outputs.version }}"
+          file_pattern: versions.json
           branch: main
 
       - name: Publish GitHub Release
