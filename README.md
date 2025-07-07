@@ -4,6 +4,7 @@ Refine, clean, and organize your messy notes with a single command — powered b
 
 This plugin sends your current note to an LLM and returns a cleaned-up version with improved formatting, structure, and clarity. Perfect for making quick notes or meeting jots readable and publish-ready.
 
+> **Disclaimer:** This plugin sends your note content to the configured OpenAI-compatible API endpoint only when you run the refine command. If you do not want your notes to be sent to an external service, do not use this plugin.
 ---
 
 ## ✨ Features
