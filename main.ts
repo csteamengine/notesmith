@@ -85,8 +85,8 @@ Keep all important content, but reword or reformat for clarity where helpful.`;
 
 			const prompt = `${baseInstructions}
 ${tagInstruction ? `\n- ${tagInstruction}` : ""}
-${this.settings.additionalInstructions ? `\n\nAdditional Instructions:\n${this.settings.additionalInstructions}` : ""}
-\n\n### Note:\n${original}`;
+${this.settings.additionalInstructions ? `\n\nHere are additional instructions for how to modify the document. These are not part of the document:\n${this.settings.additionalInstructions}` : ""}
+\n\n### Here is the contents of the document to edit:\n\n${original}`;
 
 			const refined = await this.callLLM(prompt);
 
@@ -155,7 +155,7 @@ class RefinerSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 
 		containerEl.empty();
-		containerEl.createEl("h2", { text: "Note Refiner Settings" });
+		containerEl.createEl("h2", { text: "NoteSmith Settings" });
 
 		new Setting(containerEl)
 			.setName("OpenAI API Key")
@@ -211,16 +211,19 @@ class RefinerSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Additional Prompt Instructions")
 			.setDesc("Optional: Extra instructions passed to the language model.")
-			.addTextArea((textArea) =>
-				textArea
-					.setPlaceholder("Add any additional instructions here...")
-					.setValue(this.plugin.settings.additionalInstructions)
-					.onChange(async (value) => {
-						this.plugin.settings.additionalInstructions = value.trim();
-						await this.plugin.saveSettings();
-					}).inputEl.style.minWidth = "350px"
-			)
-			.settingEl.style.maxWidth = "100%";
+			.addTextArea((textArea) => {
+					textArea
+						.setPlaceholder("Add any additional instructions here...")
+						.setValue(this.plugin.settings.additionalInstructions)
+						.onChange(async (value) => {
+							this.plugin.settings.additionalInstructions = value.trim();
+							await this.plugin.saveSettings();
+						}).inputEl.className = "refiner-textarea"
+
+					textArea.inputEl.rows = 5;
+					return textArea
+				}
+			).settingEl.className = "refiner-setting";
 	}
 }
 
