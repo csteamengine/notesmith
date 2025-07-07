@@ -6,6 +6,7 @@ interface RefinerSettings {
 	apiUrl: string;
 	tags: string;
 	additionalInstructions: string;
+	useOllama: boolean;
 }
 
 const DEFAULT_SETTINGS: RefinerSettings = {
@@ -14,6 +15,7 @@ const DEFAULT_SETTINGS: RefinerSettings = {
 	apiUrl: "https://api.openai.com/v1/chat/completions",
 	tags: "",
 	additionalInstructions: "",
+	useOllama: false,
 };
 
 export default class RefinerPlugin extends Plugin {
@@ -74,12 +76,12 @@ Clean up the following note by:
 - Fixing grammar, punctuation, and inconsistent structure
 - Making the content easier to read and logically organized
 - Applying proper Obsidian Markdown formatting:
-  - Use \`#\` or \`##\` or \`###\` or \`####\` for section headings where appropriate
+  - Use \`#\`, \`##\`, \`###\`, \`####\` for headings
   - Format lists using \`-\` or \`1.\` consistently
   - Convert any tasks into \`[ ]\` or \`[x]\` checkboxes
-  - Preserve and reformat code blocks, blockquotes, and inline formatting correctly
-  - Don't output the response in a code block. Parts of the notes can be in code blocks, but the entire response should not be in a code block.
-  - Avoid inserting a horizontal rule at the very beginning of the note (\`---\`) as it breaks rendering in Obsidian
+  - Preserve and reformat code blocks, blockquotes, and inline formatting
+  - Don't wrap the whole response in a code block
+  - Avoid \`---\` at the top (it breaks Obsidian rendering)
 
 Keep all important content, but reword or reformat for clarity where helpful.`;
 
@@ -88,7 +90,10 @@ ${tagInstruction ? `\n- ${tagInstruction}` : ""}
 ${this.settings.additionalInstructions ? `\n\nAdditional Instructions:\n${this.settings.additionalInstructions}` : ""}
 \n\n### Note:\n${original}`;
 
-			const refined = await this.callLLM(prompt);
+
+			const refined = this.settings.useOllama
+				? await this.callMistral(prompt)
+				: await this.callOpenAI(prompt);
 
 			if (refined) {
 				await this.app.vault.modify(file, refined);
@@ -104,7 +109,44 @@ ${this.settings.additionalInstructions ? `\n\nAdditional Instructions:\n${this.s
 		}
 	}
 
-	async callLLM(content: string): Promise<string | null> {
+	async callMistral(prompt: string): Promise<string | null> {
+		const { apiUrl } = this.settings; // e.g. "http://localhost:3000/api/v1/generate"
+
+		try {
+			const res = await fetch(apiUrl, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					model: this.settings.model,
+					messages: [
+						{
+							role: "user",
+							content: prompt,
+						}
+					],
+					max_tokens: 512,
+					temperature: 0.3,
+				}),
+			});
+
+			if (!res.ok) {
+				const text = await res.text();
+				throw new Error(`API Error: ${res.status} ${res.statusText} - ${text}`);
+			}
+
+			const json = await res.json();
+			// OpenWebUI returns { response: string }
+			return json.response || null;
+		} catch (err) {
+			console.error("Mistral API Error:", err);
+			return null;
+		}
+	}
+
+
+	async callOpenAI(content: string): Promise<string | null> {
 		const { apiKey, model, apiUrl } = this.settings;
 
 		try {
@@ -158,8 +200,18 @@ class RefinerSettingTab extends PluginSettingTab {
 		containerEl.createEl("h2", { text: "Note Refiner Settings" });
 
 		new Setting(containerEl)
+			.setName("Use local Ollama")
+			.setDesc("If enabled, sends requests to your local Ollama server instead of OpenAI")
+			.addToggle((toggle) =>
+				toggle.setValue(this.plugin.settings.useOllama).onChange(async (value) => {
+					this.plugin.settings.useOllama = value;
+					await this.plugin.saveSettings();
+				})
+			);
+
+		new Setting(containerEl)
 			.setName("OpenAI API Key")
-			.setDesc("Paste your OpenAI (or compatible) API key here")
+			.setDesc("Only needed if not using Ollama")
 			.addText((text) =>
 				text
 					.setPlaceholder("sk-...")
@@ -172,7 +224,7 @@ class RefinerSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Model")
-			.setDesc("Example: gpt-4o, gpt-3.5-turbo, or llama3")
+			.setDesc("e.g. gpt-4o, llama3, mistral")
 			.addText((text) =>
 				text
 					.setPlaceholder("gpt-4o")
@@ -185,7 +237,7 @@ class RefinerSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("API Endpoint")
-			.setDesc("OpenAI-compatible URL. Default: https://api.openai.com/v1/chat/completions")
+			.setDesc("For OpenAI or local Ollama. E.g. https://api.openai.com/v1/chat/completions or http://localhost:11434/v1/chat/completions")
 			.addText((text) =>
 				text
 					.setValue(this.plugin.settings.apiUrl)
@@ -197,7 +249,7 @@ class RefinerSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Preferred Tags")
-			.setDesc("Optional: Comma-separated tags (e.g. #todo, #meeting, #idea). Used to label parts of the refined note.")
+			.setDesc("Comma-separated tags like #todo, #meeting, #idea")
 			.addText((text) =>
 				text
 					.setPlaceholder("#todo, #meeting")
@@ -210,7 +262,7 @@ class RefinerSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Additional Prompt Instructions")
-			.setDesc("Optional: Extra instructions passed to the language model.")
+			.setDesc("Optional extra instructions sent to the model")
 			.addTextArea((textArea) =>
 				textArea
 					.setPlaceholder("Add any additional instructions here...")
