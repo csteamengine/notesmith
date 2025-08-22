@@ -24,7 +24,7 @@ export default class RefinerPlugin extends Plugin {
 
 		this.addCommand({
 			id: "refine-current-note",
-			name: "Refine Current Note",
+			name: "Refine current note",
 			checkCallback: (checking) => {
 				const file = this.app.workspace.getActiveFile();
 				if (file && !checking) this.refineNote(file);
@@ -34,7 +34,7 @@ export default class RefinerPlugin extends Plugin {
 
 		this.addCommand({
 			id: "refine-from-file-menu",
-			name: "Refine Note (Right-click)",
+			name: "Refine note (right-click)",
 			checkCallback: (checking) => true,
 			callback: async () => {
 				const file = this.app.workspace.getActiveFile();
@@ -155,10 +155,9 @@ class RefinerSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 
 		containerEl.empty();
-		containerEl.createEl("h2", { text: "NoteSmith Settings" });
 
 		new Setting(containerEl)
-			.setName("OpenAI API Key")
+			.setName("OpenAI API key")
 			.setDesc("Paste your OpenAI (or compatible) API key here")
 			.addText((text) =>
 				text
@@ -184,7 +183,7 @@ class RefinerSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("API Endpoint")
+			.setName("API endpoint")
 			.setDesc("OpenAI-compatible URL. Default: https://api.openai.com/v1/chat/completions")
 			.addText((text) =>
 				text
@@ -196,7 +195,7 @@ class RefinerSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Preferred Tags")
+			.setName("Preferred tags")
 			.setDesc("Optional: Comma-separated tags (e.g. #todo, #meeting, #idea). Used to label parts of the refined note.")
 			.addText((text) =>
 				text
@@ -209,7 +208,7 @@ class RefinerSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Additional Prompt Instructions")
+			.setName("Additional prompt instructions")
 			.setDesc("Optional: Extra instructions passed to the language model.")
 			.addTextArea((textArea) => {
 					textArea
